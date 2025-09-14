@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Copy, RotateCw, Download, Eye, EyeOff, Settings, Image, Palette, Zap, Move3D } from "lucide-react";
-
+import { ComponentType } from 'react';
 interface TransformationParams {
   height?: string;
   width?: string;
@@ -26,10 +26,19 @@ interface TransformationParams {
   lossless?: boolean;
 }
 
-const ImageKitTransformer = ({ imageurl }: any) => {
+
+interface TabButtonProps {
+  id: string;
+  icon: ComponentType<{ className?: string }>;
+  label: string;
+  isActive: boolean;
+  setActiveTab: (id: string) => void;
+}
+
+const ImageKitTransformer = ({ imageurl }: { imageurl: string|null }) => {
   const [imageUrl, setImageUrl] = useState(imageurl);
   const [transformations, setTransformations] = useState<TransformationParams>({});
-  const [transformedUrl, setTransformedUrl] = useState("");
+  const [transformedUrl, setTransformedUrl] = useState<string|null>("");
   const [copySuccess, setCopySuccess] = useState(false);
   const [activeTab, setActiveTab] = useState<'basic' | 'effects' | 'colors' | 'advanced'>('basic');
   const [previewMode, setPreviewMode] = useState<'split' | 'overlay'>('split');
@@ -73,7 +82,7 @@ const ImageKitTransformer = ({ imageurl }: any) => {
   useEffect(() => {
     const transformString = generateTransformationString();
     if (transformString && imageUrl) {
-      let cleanUrl = imageUrl.split("?")[0];
+      const cleanUrl = imageUrl.split("?")[0];
       const urlParams = new URLSearchParams(imageUrl.split("?")[1] || "");
       urlParams.delete("tr");
       urlParams.set("tr", transformString.replace("tr:", ""));
@@ -81,7 +90,7 @@ const ImageKitTransformer = ({ imageurl }: any) => {
     } else {
       setTransformedUrl(imageUrl);
     }
-  }, [transformations, imageUrl]);
+  }, [transformations, imageUrl,generateTransformationString]);
 
   const updateTransformation = (key: keyof TransformationParams, value: string | boolean) => {
     setTransformations((prev) => ({
@@ -92,9 +101,12 @@ const ImageKitTransformer = ({ imageurl }: any) => {
 
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(transformedUrl);
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
+      if(transformedUrl){
+        await navigator.clipboard.writeText(transformedUrl);
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
+      }
+      
     } catch (err) {
       console.error("Failed to copy:", err);
     }
@@ -106,7 +118,9 @@ const ImageKitTransformer = ({ imageurl }: any) => {
 
   const downloadImage = () => {
     const link = document.createElement('a');
-    link.href = transformedUrl;
+    if(transformedUrl){
+      link.href = transformedUrl;
+    }
     link.download = `transformed-image.${transformations.format || 'jpg'}`;
     document.body.appendChild(link);
     link.click();
@@ -170,7 +184,7 @@ const ImageKitTransformer = ({ imageurl }: any) => {
           <div className="relative">
             <input
               type="text"
-              value={imageUrl}
+              value={imageUrl ? imageUrl : ""}
               onChange={(e) => setImageUrl(e.target.value)}
               placeholder="Enter your ImageKit URL here..."
               className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
@@ -576,7 +590,7 @@ const ImageKitTransformer = ({ imageurl }: any) => {
                     <div className="text-center">
                       {previewMode === 'split' && <p className="text-sm font-medium text-gray-600 mb-2">Transformed</p>}
                       <img
-                        src={transformedUrl}
+                        src={transformedUrl ? transformedUrl : undefined}
                         alt="Transformed preview"
                         className="max-w-full max-h-[300px] object-contain rounded-lg shadow-lg"
                         onError={(e) => {

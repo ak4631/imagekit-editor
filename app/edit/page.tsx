@@ -1,13 +1,10 @@
-'use client'
-import { useSearchParams } from 'next/navigation'
-import ImageKitTransformer from '../components/ImageKitEditor'
+import { Suspense } from "react";
+import EditPage from "./EditPageContent";
 
-const page = () => {
-    const searchParams= useSearchParams();
-    const imageUrl = searchParams.get("imageUrl");
-    return (
-    <ImageKitTransformer imageurl={imageUrl}/>
-  )
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <EditPage />
+    </Suspense>
+  );
 }
-
-export default page

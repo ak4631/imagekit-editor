@@ -72,7 +72,7 @@ const ImageKitUpload = () => {
                 abortSignal: abortController.signal,
             });
             console.log("Upload response:", uploadResponse);
-            let url = uploadResponse?.url ? uploadResponse?.url : "";
+            const url = uploadResponse?.url ? uploadResponse?.url : "";
             setImageUrl(url);
         } catch (error) {
             if (error instanceof ImageKitAbortError) {
